@@ -1,0 +1,52 @@
+
+local Players = game:GetService("Players")
+local Debris = game:GetService("Debris")
+local SoundService = game:GetService("SoundService")
+local TweenService = game:GetService("TweenService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+--
+local Container = script.Parent.c
+local CloseUI = script.Parent.every.close
+local tinfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear)
+local Fades = require(ReplicatedStorage.modules.Fades)
+--
+local function Close()
+    script.Parent.Enabled = false
+    script.ButtonClick:Play()
+end
+--
+local function Initialize()
+    local elements = {Container.a, Container.b, Container.c, Container.d}
+    local primary = script.Parent.every.holder
+    --
+    for Index, Value in elements do
+        local Object = Fades.New(Value)
+        Object:Out()
+        task.wait(0.2)
+        SoundService:PlayLocalSound(script.tut)
+        Value.Parent = primary
+        Value.Visible = true
+        Object:In()
+        task.wait(0.5)
+    end
+    --
+    local Object = Fades.New(CloseUI)
+    Object:Out()
+    for rep = 5, 0, -1 do
+        task.wait(1)
+        if CloseUI.Visible ~= true then
+            Object:In()
+            CloseUI.Visible = true
+        end
+        script.tick:Play()
+        CloseUI.cdown.Text = tostring(rep)
+    end
+    --
+    CloseUI.cdown.Visible = false
+    CloseUI.cb.Visible = true
+    CloseUI.UIStroke.Color = Color3.new(167, 167, 167)
+end
+
+CloseUI.cb.MouseButton1Click:Connect(Close)
+
+Initialize()
