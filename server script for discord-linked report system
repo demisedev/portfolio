@@ -1,0 +1,52 @@
+-- built off of a custom webhookservice
+
+local SendReportEvent = game:GetService("ReplicatedStorage").SendReport
+local WebhookService = require(game:GetService("ServerScriptService"):FindFirstChild("WebhookService"))
+
+local url = "secret"
+local ServerJobID = script:WaitForChild("ServerJobID")
+
+ServerJobID.Value = game.JobId
+
+SendReportEvent.OnServerEvent:Connect(function(plr, ReportedPlayer, SuspicionType, Comment)
+	local req = WebhookService:new()
+	
+	req.Title = "New Report"
+	req.Color = WebhookService.colors.red
+	req.Footer = "REPORT SYSTEM"
+	
+	local fields = {
+		{
+			['name'] = "Reported Player",
+			['value'] = ReportedPlayer,
+			['inline'] = true
+		},
+		{
+			['name'] = "Reporter",
+			['value'] = plr.Name .. " [Player UserID = " .. plr.UserId .. "]",
+			['inline'] = true
+		},
+		{
+			['name'] = "Server Job ID",
+			['value'] = ServerJobID.Value,
+			['inline'] = true
+		},
+		{
+			['name'] = "Suspicion Type",
+			['value'] = SuspicionType,
+			['inline'] = true
+		},
+		{
+			['name'] = "Extra Comment",
+			['value'] = Comment,
+			['inline'] = true
+		},
+		{
+			['name'] = "Game Link",
+			['value'] = "https://www.roblox.com/games/--/C",
+			['inline'] = false
+		},
+	}
+	req.Fields = fields
+	req:sendEmbed(url)
+end)
