@@ -1,6 +1,6 @@
 --[[
 Author: @demiseisgone
-Purpose: serverscript of report system (built off of custom webhookservice module)
+Purpose: serverside of report system (built off of custom webhookservice module)
 ]]
 
 local SendReportEvent = game:GetService("ReplicatedStorage").SendReport
