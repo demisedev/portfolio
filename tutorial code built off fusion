@@ -1,3 +1,7 @@
+--[[
+Author: @demiseisgone
+Purpose: game-introduction tutorial ui
+]]
 
 local Players = game:GetService("Players")
 local Debris = game:GetService("Debris")
