@@ -1,4 +1,7 @@
--- built off of a custom webhookservice
+--[[
+Author: @demiseisgone
+Purpose: serverscript of report system (built off of custom webhookservice module)
+]]
 
 local SendReportEvent = game:GetService("ReplicatedStorage").SendReport
 local WebhookService = require(game:GetService("ServerScriptService"):FindFirstChild("WebhookService"))
