@@ -1,0 +1,82 @@
+--[[
+Author: @demiseisgone
+Purpose: Pathfinding for all AI, and entities.
+]]
+
+local Pathfinding = {}
+
+local PathfindingService = game:GetService("PathfindingService")
+local Players = game:GetService("Players")
+
+function Pathfinding.FindNearestCharacter(fromPosition)
+		local Magnitude = math.huge
+		local Closest, Gap
+
+		for Index, Value in Players:GetPlayers() do
+			if Value.Character then
+				local Humanoid = Value.Character:FindFirstChild("Humanoid")
+
+				if Humanoid and Humanoid.Health >= 0 then
+					local Distance = (fromPosition - Humanoid.RootPart.Position).Magnitude
+					if Distance < Magnitude then
+						Closest = Value.Character.PrimaryPart.CFrame
+						Magnitude = Distance
+						Gap = Distance
+					end
+				end
+			end
+		end
+		
+	return Closest, Gap
+end
+
+function Pathfinding.CreatePath()
+	local Path = PathfindingService:CreatePath({
+		AgentRadius = 4.3,
+		AgentHeight = 5.85,
+		AgentCanJump = false,
+		AgentCanClimb = false,
+		Costs = {
+
+		}
+	})
+	return Path
+end
+
+function Pathfinding.RunPath(model, path, destination)
+	path:ComputeAsync(model.PrimaryPart.Position, destination)
+	local waypoints = path:GetWaypoints()
+	local Humanoid = model:FindFirstChild("Humanoid")
+	
+	local ConnectionBlocked, NextWaypointIndex, ConnectionReached = nil, nil, nil
+
+	for waypoint_index, waypoint in ipairs(waypoints) do
+		
+	end
+	
+	ConnectionBlocked = path.Blocked:Connect(function(blockedWaypointIndex)
+
+		if blockedWaypointIndex >= NextWaypointIndex then
+
+			ConnectionBlocked:Disconnect()
+			Pathfinding.RunPath(destination)
+		end
+	end)
+	
+	if not ConnectionReached then
+		ConnectionReached = Humanoid.MoveToFinished:Connect(function(reached)
+			if reached and NextWaypointIndex < #waypoints then
+				NextWaypointIndex += 1
+				Humanoid:MoveTo(waypoints[NextWaypointIndex].Position)
+			else
+				ConnectionReached:Disconnect()
+				ConnectionBlocked:Disconnect()
+			end
+		end)
+	end
+	
+	NextWaypointIndex = 2
+	Humanoid:MoveTo(waypoints[NextWaypointIndex].Position)
+end
+
+return Pathfinding
