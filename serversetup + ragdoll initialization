@@ -1,0 +1,130 @@
+--[[
+Author: @demiseisgone
+Purpose: serversetup and ragdoll initialization
+]]
+
+--["SERVICES"]--
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local ServerStorage = game:GetService("ServerStorage")
+local TextService = game:GetService("TextService")
+local Lighting = game:GetService("Lighting")
+local TweenService = game:GetService("TweenService")
+local BadgeService = game:GetService("BadgeService")
+
+--["ASSETS"]--
+
+local PlayerStats = ReplicatedStorage:WaitForChild("PlayerStats")
+local Config = script:WaitForChild("Config")
+local Storage = ReplicatedStorage:WaitForChild("Storage")
+local PlayerStats = ReplicatedStorage:WaitForChild("PlayerStats")
+local Events = ReplicatedStorage:WaitForChild("Events")
+
+local Props = workspace:WaitForChild("Props")
+local CurrentValues = ReplicatedStorage:WaitForChild("CurrentValues")
+
+--["MODULES"]--
+local OxygenModule = require(script.OxygenModule)
+
+--["FUNCTIONS"]--
+
+local function ServerSetup()
+    Config.Studio.Value = game:GetService("RunService"):IsStudio()
+end
+
+local function Debug(Msg)
+    if Config.Studio.Value then
+        warn(script.Name .. ": " .. Msg)
+    end
+end
+
+local function PlayerSetup(Player)
+    
+    local PlayerStat = script.EXAMPLE:Clone()
+    PlayerStat.Parent = PlayerStats
+    PlayerStat.Name = Player.Name
+    
+    return PlayerStat
+end
+
+local function PSTAT(Name)
+    return PlayerStats:FindFirstChild(Name)
+end
+
+_G.PSTAT = PSTAT
+
+--["CONNECTIONS"]--
+
+Players.PlayerAdded:Connect(function(Player)
+    local PlayerStat = PlayerSetup(Player)
+    if not PlayerStat then
+        Debug(Player.Name .. "'s PlayerStat was not found.")
+    end
+    
+    if not BadgeService:UserHasBadgeAsync(Player.UserId, 3957365492995554) then
+        BadgeService:AwardBadge(Player.UserId, 3957365492995554)
+    end
+end)
+
+_G.PSTAT = function(name)
+    return game:GetService("ReplicatedStorage").PlayerStat:FindFirstChild(name)
+end
+--["END"]--
+
+local function OnCharacterAdded(Character)
+    task.wait()
+    Character.Parent = workspace.Characters
+    local HumanoidRootPart = Character.HumanoidRootPart
+    local Torso = Character.Torso
+    for _, RagdollPart in pairs(ServerStorage.Ragdoll:GetChildren()) do
+        if Character:FindFirstChild(RagdollPart.Name) then
+            local CharacterPart = Character:FindFirstChild(RagdollPart.Name)
+
+            for _, Child in pairs(RagdollPart:GetChildren()) do
+                if not CharacterPart:FindFirstChild(Child.Name) then
+                    local Clone = Child:Clone()
+                    Clone.Parent = CharacterPart
+
+                    if Clone:IsA("BasePart") and Clone:FindFirstChildOfClass("Weld") then
+                        Clone:FindFirstChildOfClass("Weld").Part0 = CharacterPart
+                        Clone:FindFirstChildOfClass("Weld").Part1 = Clone
+                        if Players:GetPlayerFromCharacter(Character) then
+                            Clone.CollisionGroup = "Character"
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    if HumanoidRootPart:FindFirstChild("CTs") then
+        local CTs = HumanoidRootPart:FindFirstChild("CTs")
+
+        CTs["RGCT_Left Hip"].Attachment0 = Torso["Torso_Left Leg"]
+        CTs["RGCT_Left Hip"].Attachment1 = Character["Left Leg"].RagdollAttachment
+
+        CTs["RGCT_Right Hip"].Attachment0 = Torso["Torso_Right Leg"]
+        CTs["RGCT_Right Hip"].Attachment1 = Character["Right Leg"].RagdollAttachment
+
+        CTs["RGCT_Left Shoulder"].Attachment0 = Torso["Torso_Left Arm"]
+        CTs["RGCT_Left Shoulder"].Attachment1 = Character["Left Arm"].RagdollAttachment
+
+        CTs["RGCT_Right Shoulder"].Attachment0 = Torso["Torso_Right Arm"]
+        CTs["RGCT_Right Shoulder"].Attachment1 = Character["Right Arm"].RagdollAttachment
+
+        CTs.RGCT_Neck.Attachment0 = Torso.Torso_Head
+        CTs.RGCT_Neck.Attachment1 = Character.Head.RagdollAttachment
+    end
+end
+
+
+local function OnPlayerAdded(Player)
+    Player.CharacterAdded:Connect(OnCharacterAdded)
+end
+
+Players.PlayerAdded:Connect(OnPlayerAdded)
+
+----
+
+ServerSetup()
