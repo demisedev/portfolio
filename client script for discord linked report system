@@ -1,3 +1,8 @@
+--[[
+Author: @demiseisgone
+Purpose: clientside of report system (ui)
+]]
+
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
