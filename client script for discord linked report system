@@ -1,0 +1,95 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Container = script.Parent.ScrollingFrame
+local Finalization = script.Parent.Parent.Finalization
+local Finished = script.Parent.Parent.Finished
+
+function RemovePlayer(Player)
+	if Container:FindFirstChild(Player.Name) then
+		Container:FindFirstChild(Player.Name):Destroy()
+	end
+end
+
+function AddPlayers(Player)
+	if not Container:FindFirstChildWhichIsA("UIListLayout") then
+		local UIListLayout = script.UIListLayout:Clone()
+		UIListLayout.Parent = Container
+	end
+
+	if Container:FindFirstChild(Player.Name) then
+		Container:FindFirstChild(Player.Name):Destroy()
+	end
+
+	local PlayerFrame = script.PlayerExample:Clone()
+	PlayerFrame.Parent = Container
+	PlayerFrame.Name = Player.Name
+	PlayerFrame.PlayerHolder.PlayerName.Text = PlayerFrame.PlayerHolder.PlayerName.Value.Value .. Player.Name .. "</font>"
+
+	local Thumbnail, Error = Players:GetUserThumbnailAsync(Player.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+	PlayerFrame.PlayerImage.Image = Thumbnail
+end
+
+local function setupPlayer(Player)
+	AddPlayers(Player)
+	Player:GetPropertyChangedSignal("Team"):Connect(function()
+		AddPlayers(Player)
+	end)
+	Player:GetPropertyChangedSignal("TeamColor"):Connect(function()
+		AddPlayers(Player)
+	end)
+end
+
+for _, v in next, Players:GetPlayers() do
+	setupPlayer(v)
+end
+
+Players.PlayerAdded:Connect(setupPlayer)
+Players.PlayerRemoving:Connect(RemovePlayer)
+
+--
+
+local CD = false
+
+script.Parent:GetPropertyChangedSignal("Visible"):Connect(function()
+	if script.Parent.Visible ~= true then
+		return
+	end
+end)
+
+for _, v in pairs(Container:GetChildren()) do
+	if v:IsA("Frame") then
+		local ReportButton = v.ReportButton
+		
+		ReportButton.MouseButton1Click:Connect(function()
+			Container.Parent.Visible = false
+			Finalization.Visible = true
+		end)
+		
+		Finalization.Exit.MouseButton1Click:Connect(function()
+			Finalization.Visible = false
+			Finalization.ExtraComment.TextBox.Text = string.sub(Finalization.ExtraComment.TextBox.Text, 0, math.huge)
+			Finalization.SuspicionType.TextBox.Text = string.sub(Finalization.ExtraComment.TextBox.Text, 0, math.huge)
+		end)
+		
+		Finalization.Confirm.MouseButton1Click:Connect(function()
+			if CD then return end
+
+			CD = true
+			Finalization.Visible = false
+			Finished.Visible = true
+
+			ReplicatedStorage:FindFirstChild("SendReport"):FireServer(ReportButton.Parent.Name, Finalization.SuspicionType.TextBox.Text, Finalization.ExtraComment.TextBox.Text)
+
+			task.wait(0.5)
+
+			CD = false
+			Finalization.ExtraComment.TextBox.Text = string.sub(Finalization.ExtraComment.TextBox.Text, 0, math.huge)
+			Finalization.SuspicionType.TextBox.Text = string.sub(Finalization.ExtraComment.TextBox.Text, 0, math.huge)
+		end)
+
+		Finished.Exit.MouseButton1Click:Connect(function()
+			Finished.Visible = false
+		end)
+	end
+end
