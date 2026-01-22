@@ -1,6 +1,6 @@
 --[[
 Author: @demiseisgone
-Purpose: serverside of report system (built off of custom webhookservice module)
+Purpose: serverside of report system (built off of custom webhookservice module made by luascape)
 ]]
 
 local SendReportEvent = game:GetService("ReplicatedStorage").SendReport
